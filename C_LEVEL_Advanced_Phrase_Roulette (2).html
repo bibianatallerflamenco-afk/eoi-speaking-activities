@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>C LEVEL – Advanced Phrase Roulette</title>
+<style>
+:root{--ink:#18202a;--muted:#667085;--line:#d9dee7;--paper:#fff;--soft:#f5f7fa;--accent:#23395d;--accent2:#e9eef7}
+*{box-sizing:border-box}
+body{margin:0;background:transparent;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+.app{max-width:900px;margin:0 auto;padding:20px}
+.header{text-align:center;margin-bottom:20px}
+.kicker{font-size:13px;letter-spacing:.16em;font-weight:800;color:var(--accent)}
+h1{font-size:clamp(25px,5vw,40px);margin:7px 0 8px}
+.sub{color:var(--muted);line-height:1.45}
+.stage{display:grid;grid-template-columns:minmax(250px,.9fr) minmax(280px,1.1fr);gap:22px;align-items:center}
+.wheel-wrap{position:relative;max-width:360px;width:100%;margin:auto}
+.pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:28px solid var(--accent)}
+#wheel{width:100%;aspect-ratio:1;border-radius:50%;transition:transform 2.5s cubic-bezier(.15,.75,.15,1);box-shadow:inset 0 0 0 8px white,0 3px 14px #0002}
+.result{border:1px solid var(--line);border-radius:18px;padding:26px;background:var(--paper);min-height:300px;display:flex;flex-direction:column;justify-content:center}
+.label{font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--muted)}
+.phrase{font-size:clamp(24px,4vw,36px);font-weight:800;line-height:1.18;margin:18px 0 10px}
+.function{font-size:15px;font-weight:800;color:var(--accent);text-transform:uppercase;line-height:1.4}
+.task{margin-top:24px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);line-height:1.5}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+button{min-height:48px;border-radius:12px;padding:0 22px;font-size:16px;font-weight:800;cursor:pointer}
+#spin{border:0;background:var(--accent);color:#fff}
+#again{border:1px solid var(--line);background:#fff;color:var(--ink)}
+.rules{margin:24px auto 0;max-width:700px;background:var(--soft);border-radius:14px;padding:16px 20px;color:var(--muted);line-height:1.5}
+.rules strong{color:var(--ink)}
+@media(max-width:680px){.stage{grid-template-columns:1fr}.wheel-wrap{max-width:280px}.result{min-height:260px}}
+@media(prefers-reduced-motion:reduce){#wheel{transition:none}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="header">
+    <div class="kicker">C LEVEL SPEAKING</div>
+    <h1>Advanced Phrase Roulette</h1>
+    <div class="sub">Spin the wheel. Use the phrase naturally when answering your discussion question.</div>
+  </header>
+  <section class="stage">
+    <div class="wheel-wrap">
+      <div class="pointer" aria-hidden="true"></div>
+      <canvas id="wheel" width="700" height="700" aria-label="Advanced phrase roulette"></canvas>
+    </div>
+    <div class="result" aria-live="polite">
+      <div class="label">YOUR PHRASE</div>
+      <div class="phrase" id="phrase">Ready?</div>
+      <div class="function" id="function">(COMMUNICATIVE FUNCTION)</div>
+      <div class="task" id="task">Spin the roulette, then answer the question using the expression accurately and naturally.</div>
+    </div>
+  </section>
+  <div class="controls">
+    <button id="spin" type="button">SPIN</button>
+    <button id="again" type="button">SPIN AGAIN</button>
+  </div>
+  <div class="rules"><strong>Challenge:</strong> your partner decides whether the phrase was used naturally. 1 point for accurate use + 1 point for developing the idea convincingly.</div>
+</main>
+<script>
+const items=[{"phrase": "It seems to me that …", "function": "EXPRESSING A PERSONAL VIEW"}, {"phrase": "To my mind, …", "function": "EXPRESSING A PERSONAL VIEW"}, {"phrase": "As far as I'm concerned, …", "function": "EXPRESSING A PERSONAL VIEW"}, {"phrase": "By and large, …", "function": "GENERALISING"}, {"phrase": "In general terms, …", "function": "GENERALISING"}, {"phrase": "A case in point is …", "function": "GIVING AN EXAMPLE"}, {"phrase": "By way of example, …", "function": "GIVING AN EXAMPLE"}, {"phrase": "I couldn't agree more.", "function": "SHOWING AGREEMENT"}, {"phrase": "You've got a point there.", "function": "SHOWING AGREEMENT"}, {"phrase": "That's a fair point.", "function": "CONCEDING / ACCEPTING PART OF AN ARGUMENT"}, {"phrase": "I'll grant you that, but …", "function": "CONCEDING / ACCEPTING PART OF AN ARGUMENT"}, {"phrase": "I see your point, but …", "function": "DISAGREEING DIPLOMATICALLY"}, {"phrase": "Your point is well taken, but …", "function": "DISAGREEING DIPLOMATICALLY"}, {"phrase": "I'm afraid that's not always the case.", "function": "DISAGREEING DIPLOMATICALLY"}, {"phrase": "I beg to differ.", "function": "DISAGREEING DIPLOMATICALLY"}, {"phrase": "If I may, …", "function": "HEDGING / SOFTENING"}, {"phrase": "If I may be so bold, …", "function": "HEDGING / SOFTENING"}, {"phrase": "If you don't mind my saying so, …", "function": "HEDGING / SOFTENING"}, {"phrase": "The point I'm trying to make is …", "function": "CLARIFYING / REPHRASING"}, {"phrase": "In other words, …", "function": "CLARIFYING / REPHRASING"}, {"phrase": "Similarly, …", "function": "COMPARING: SIMILARITY"}, {"phrase": "By the same token, …", "function": "COMPARING: SIMILARITY"}, {"phrase": "In stark contrast, …", "function": "COMPARING / CONTRASTING"}, {"phrase": "As opposed to …", "function": "COMPARING / CONTRASTING"}, {"phrase": "What is really significant is …", "function": "EMPHASISING"}, {"phrase": "What is important to remember is …", "function": "EMPHASISING"}, {"phrase": "I'd like to emphasise the fact that …", "function": "EMPHASISING"}, {"phrase": "What's your take on …?", "function": "ASKING FOR THE OTHER SPEAKER'S VIEW"}, {"phrase": "Where do you stand on …?", "function": "ASKING FOR THE OTHER SPEAKER'S VIEW"}, {"phrase": "Wouldn't you agree that …?", "function": "LOOKING FOR AGREEMENT"}, {"phrase": "I'm sure you'll agree with me that …", "function": "LOOKING FOR AGREEMENT"}, {"phrase": "Back to my original point, …", "function": "REDIRECTING THE CONVERSATION"}, {"phrase": "With this in mind, …", "function": "REDIRECTING / LINKING IDEAS"}, {"phrase": "The bottom line is …", "function": "SUMMARISING"}, {"phrase": "In a nutshell, …", "function": "SUMMARISING"}, {"phrase": "This is largely due to the fact that …", "function": "OUTLINING CAUSES"}, {"phrase": "The main reason behind this is …", "function": "OUTLINING CAUSES"}, {"phrase": "… has a knock-on effect.", "function": "DISCUSSING RESULTS / CONSEQUENCES"}, {"phrase": "This, in turn, will lead to …", "function": "DISCUSSING RESULTS / CONSEQUENCES"}, {"phrase": "…, which begs the question …", "function": "DISCUSSING RESULTS / CONSEQUENCES"}, {"phrase": "A compromise solution would be to …", "function": "OFFERING A SOLUTION / COMPROMISE"}, {"phrase": "Could we both agree that …?", "function": "NEGOTIATING A SOLUTION / COMPROMISE"}, {"phrase": "… would be a satisfactory solution.", "function": "OFFERING A SOLUTION / COMPROMISE"}, {"phrase": "All things considered, …", "function": "CONCLUDING"}, {"phrase": "Bearing all that in mind, …", "function": "CONCLUDING"}];
+const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
+const phrase=document.getElementById('phrase'),fn=document.getElementById('function');
+const spin=document.getElementById('spin'),again=document.getElementById('again');
+let rotation=0,busy=false;
+const cats=[...new Set(items.map(x=>x.function))];
+const fills=['#dfe6ef','#cbd6e5','#edf0f4','#d5dde8','#e7ebf0','#c4cfdd'];
+function draw(){
+ const n=cats.length, step=Math.PI*2/n, c=350,r=330;
+ ctx.clearRect(0,0,700,700);
+ cats.forEach((cat,i)=>{
+  const a=i*step-Math.PI/2;
+  ctx.beginPath();ctx.moveTo(c,c);ctx.arc(c,c,r,a,a+step);ctx.closePath();
+  ctx.fillStyle=fills[i%fills.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.stroke();
+  ctx.save();ctx.translate(c,c);ctx.rotate(a+step/2);
+  ctx.textAlign='right';ctx.fillStyle='#18202a';ctx.font='bold 18px Arial';
+  let label=cat.replace(' / ',' /\n').replace(' / ',' /\n');
+  const parts=label.split('\n');
+  parts.forEach((t,j)=>ctx.fillText(t,285,(j-(parts.length-1)/2)*21));
+  ctx.restore();
+ });
+ ctx.beginPath();ctx.arc(c,c,70,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#23395d';ctx.lineWidth=6;ctx.stroke();
+ ctx.fillStyle='#23395d';ctx.textAlign='center';ctx.font='bold 25px Arial';ctx.fillText('C LEVEL',c,c+8);
+}
+draw();
+function go(){
+ if(busy)return; busy=true; spin.disabled=again.disabled=true;
+ const index=Math.floor(Math.random()*items.length);
+ const turns=4+Math.floor(Math.random()*3);
+ rotation += turns*360 + Math.floor(Math.random()*360);
+ canvas.style.transform=`rotate(${rotation}deg)`;
+ const delay=window.matchMedia('(prefers-reduced-motion: reduce)').matches?30:2550;
+ setTimeout(()=>{
+   phrase.textContent=items[index].phrase;
+   fn.textContent='('+items[index].function+')';
+   busy=false;spin.disabled=again.disabled=false;
+ },delay);
+}
+spin.addEventListener('click',go);again.addEventListener('click',go);
+</script>
+</body>
+</html>
